@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block main %}
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/jquery.dataTables.min.css"/>
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
+      </style>
+  </head>
+<body>
+        <table id="stats" class="display" style="width:95%">
+            <tr>
+                <th>Name</th>
+                <th>Symbol</th>
+                <th>Amount</th>
+                <th>Latest price</th>
+                <th>Current Value</th>
+                <th>Price paid</th>
+                <th>Profit</th>
+            </tr>
+        </table>
+<br>
+<p style="text-align:left;">
+    Available cash: <mark>{{ cash }}</mark>
+    Portfolio value: <mark>{{ grand_total }}</mark>
+    </p>
+<script>
+function setupData() {
+    $(document).ready(function () {
+        $('#stats').DataTable({
+            "paging":   false,
+            "searching": false,
+            "ajax": {
+                "url": "/indexJSON",
+                "dataType": "json",
+                "dataSrc": "data",
+                "contentType":"application/json"
+            },
+            "columns": [
+                {"data": "company",
+                "title": "Name"},
+                {"data": "stock",
+                "title": "Symbol"},
+                {"data": "number",
+                "title": "Amount"},
+                {"data": "cur_price",
+                "title": "Current price"},
+                {"data": "cur_total",
+                "title": "Current total"},
+                {"data": "value",
+                "title": "Value"},
+                {"data": "profit",
+                "title": "Profit"},
+            ],
+            "columnDefs": [
+        {"className": "dt-left", "targets": "_all"}
+        ],
+        });
+    });
+}
+$( window ).on( "load", setupData );
+</script>      
+</body>
+{% endblock %}

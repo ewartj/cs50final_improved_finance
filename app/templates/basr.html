@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Folder mover.</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+  </head>
+  <body>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Folder mover.</a>
+        <div>
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('dirtree') }}">Grommit</a>
+        </div>
+      </nav>
+      <hr>
+        {% block content %}{% endblock %}
+    </body>
+</html>
