@@ -12,9 +12,11 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 import pandas as pd
 
+
 from passlib.apps import custom_app_context as pwd_context
 
 from app.helpers import *
+from app.models import portfolio, log, users, portfolioSchema
 
 #from app.models import log, portfolio, users
 from app import app, db
@@ -30,13 +32,19 @@ def index():
     print(session["user_id"])
 
     # pull all transactions belonging to user
-    portfolio = db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : session["user_id"]})
-    
-    if not portfolio: # CHANGE THIS SO IT LOOKS FOR AN EMPRTY DICTIONARY
+    portfoli = db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : session["user_id"]})
+    # testName = session["user_id"]
+    # portfoli = portfolio.query.filter_by(id = testName).first()
+    # print(dict(portfoli))
+    # portfolio_query_schema = portfolioSchema(many=True)
+    # portfolio_json = portfolio_query_schema.dump(portfoli)
+    # print("New SQLALCHEMY QUERY")
+    # print(portfolio_json)
+    if not portfoli: # CHANGE THIS SO IT LOOKS FOR AN EMPRTY DICTIONARY
         return apology("sorry you have no holdings")
     # https://stackoverflow.com/questions/12047193/how-to-convert-sql-query-result-to-pandas-data-structure
     # Turn this into a function 
-    portfolio_db = SQLalchemy_query_pandas(portfolio)
+    portfolio_db = SQLalchemy_query_pandas(portfoli)
     print("Pandas portfolio:")
     print(portfolio_db)
     full_port_db = index_portfolio(portfolio_db)
@@ -132,11 +140,8 @@ def buy():
                 print("Update portfolio")
                 db.session.execute("UPDATE portfolio SET number=:number, value=:value WHERE id=:id AND stock=:name",
                 {"number" : new_amount, "value" : new_value,"id" : user_id, "name" : name})
-                is_owned2 = db.session.execute("SELECT * FROM portfolio WHERE id= :id AND stock= :stock",{ "id" : session["user_id"], "stock" : name_iex_info["symbol"]})
                 db.session.commit()
-                db.session.refresh(is_owned)
-                print("new total")
-                print(is_owned2)
+                db.session.execute("SELECT * FROM portfolio WHERE id= :id AND stock= :stock",{ "id" : session["user_id"], "stock" : name_iex_info["symbol"]})
             # insert new stock to the db
             else:
                 print("Add to portfolio") # WORKED TO HERE. Its not updating the right column. Not inseting/updating
@@ -149,11 +154,10 @@ def buy():
                 print(is_owned3)
                 print(test_righcols)
             # add to log do I need a timestamp?
-            log = db.session.execute("SELECT * FROM log WHERE id=:id ORDER BY date DESC", { "id" : session["user_id"]})
             db.session.execute("INSERT INTO log (id, action, stock, amount, price_dealt, date) VALUES (:id, :action, :name, :amount, :price_dealt, :date)"
             , {"id" : user_id ,"action" : "Buy", "amount" : amount, "price_dealt" : name_iex_info["price"], "name" : name, "date" : dt_string})
             db.session.commit()
-            db.session.refresh(log)
+            db.session.execute("SELECT * FROM log WHERE id=:id ORDER BY date DESC", { "id" : session["user_id"]})
             # displaying everything to screen
             portfolio = db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : session["user_id"]})
             portfolio_db = SQLalchemy_query_pandas(portfolio)
@@ -217,7 +221,7 @@ def sell():
             if new_amount == 0:
                 db.session.execute("DELETE FROM portfolio WHERE id =:id AND stock=:name", { "id" : session["user_id"], "name" : name_iex_info["symbol"]})
                 db.session.commit()
-                db.session.refresh(isOwned)
+                db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : session["user_id"]})
             # calculate value of this
             else:
             # update the portfolio database
@@ -225,16 +229,18 @@ def sell():
                 db.session.execute("UPDATE portfolio SET number=:number, value=:value WHERE id=:id AND stock=:name",
             {"number" : new_amount, "value" : new_value, "id" : session["user_id"], "name" : name})
                 #db.session.refresh(port)
-            usersUpdate = db.session.execute("UPDATE users SET cash=:cash WHERE id=:id", {"cash" : cash,  "id" : session["user_id"]})
+            db.session.execute("UPDATE users SET cash=:cash WHERE id=:id", {"cash" : cash,  "id" : session["user_id"]})
+            db.session.commit()
+            cash = get_cash(session["user_id"])
             #db.session.refresh(usersUpdate)
                 # check to see if already owned
              # get new values
             # add to log do I need a timestamp?
-            logUpdate = db.session.execute("INSERT INTO log (id, action, stock, amount, price_dealt, date) VALUES (:id, :action, :name, :amount, :price_dealt, :date)"
+            db.session.execute("INSERT INTO log (id, action, stock, amount, price_dealt, date) VALUES (:id, :action, :name, :amount, :price_dealt, :date)"
             , { "id" : session["user_id"], "action" : "sell", "amount" : amount, "name" : name_iex_info["symbol"], "price_dealt" : name_iex_info["price"], "date" : dt_string})
-            #db.session.refresh(logUpdate)
-            portfolio_db = SQLalchemy_query_pandas(portfolio)
+            db.session.commit()
             portfolio = db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : session["user_id"]})
+            portfolio_db = SQLalchemy_query_pandas(portfolio)
             portfolio_total = 0.0
             full_port_db = index_portfolio(portfolio_db)
             print(full_port_db)

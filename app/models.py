@@ -1,4 +1,4 @@
-from app import db
+from app import db, ma
 
 class log(db.Model):
     __tablename__ = 'log'
@@ -16,10 +16,14 @@ class portfolio(db.Model):
     __table_args__ = { 'extend_existing': True }
     key = db.Column("key", db.Integer, primary_key=True) # add this column
     id = db.Column("id", db.Integer)
-    action = db.Column("action", db.Text)  
     stock = db.Column("stock", db.Text)
     number = db.Column("number", db.Integer)
     value = db.Column("value", db.Float)
+    #action = db.Column("action", db.Text)  
+
+class portfolioSchema(ma.ModelSchema):
+    class Meta:
+        model = portfolio
 
 class users(db.Model):
     __tablename__ = "users"
