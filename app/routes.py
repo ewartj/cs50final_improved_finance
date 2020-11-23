@@ -32,14 +32,8 @@ def index():
     print(session["user_id"])
 
     # pull all transactions belonging to user
-    portfoli = db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : session["user_id"]})
-    # testName = session["user_id"]
-    # portfoli = portfolio.query.filter_by(id = testName).first()
-    # print(dict(portfoli))
-    # portfolio_query_schema = portfolioSchema(many=True)
-    # portfolio_json = portfolio_query_schema.dump(portfoli)
-    # print("New SQLALCHEMY QUERY")
-    # print(portfolio_json)
+    portfoli = getPortfolio(session["user_id"])
+
     if not portfoli: # CHANGE THIS SO IT LOOKS FOR AN EMPRTY DICTIONARY
         return apology("sorry you have no holdings")
     # https://stackoverflow.com/questions/12047193/how-to-convert-sql-query-result-to-pandas-data-structure
@@ -50,7 +44,7 @@ def index():
     full_port_db = index_portfolio(portfolio_db)
     print(full_port_db)
     # Get total value
-    portfolio_total = full_port_db['total'].sum() + cash
+    portfolio_total = full_port_db['cur_total'].sum() + cash
     return render_template("index.html", cash=usd(cash), grand_total=usd(portfolio_total))
 
 @login_required
@@ -58,7 +52,7 @@ def index():
 def indexJSON():
     """Show portfolio of stocks"""
     # pull all transactions belonging to user
-    portfolio = db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : session["user_id"]})
+    portfolio = getPortfolio(session["user_id"])
     if not portfolio: # CHANGE THIS SO IT LOOKS FOR AN EMPRTY DICTIONARY
         return apology("sorry you have no holdings")
     # https://stackoverflow.com/questions/12047193/how-to-convert-sql-query-result-to-pandas-data-structure
@@ -83,16 +77,11 @@ def buy():
     if request.method == "POST":
         print("Post")
         # ensure a symbol and quantity were submited
-        if not request.form.get("symbol") or not request.form.get("amount"):
-            return apology("Please provide all details")
-        if request.form.get("amount").isnumeric() == False:
-            return apology("Please provide a numerical value for amount")
-        amount = int(request.form.get("amount"))
-        if amount < 1:
-            return apology("Please provide an amount greater than 1")
+        check_request_okay(request)
 
         name = request.form.get("symbol").upper()
         print("name " + name)
+        amount = int(request.form.get("amount"))
         print("amount " + str(amount))
         user_id = session["user_id"]
         print(user_id)
@@ -123,15 +112,17 @@ def buy():
 
                 # update the portfolio database
                 #https://www.sqlitetutorial.net/sqlite-update/
-            db.session.execute("UPDATE users SET cash = :cash WHERE id = :id", {"cash" : cash, "id" : user_id})
+            #db.session.execute("UPDATE users SET cash = :cash WHERE id = :id", {"cash" : cash, "id" : user_id})
+            update_cash(session["user_id"], cash)
                 # check to see if already owned
-            is_owned = db.session.execute("SELECT * FROM portfolio WHERE id= :id AND stock= :stock",{ "id" : session["user_id"], "stock" : name_iex_info["symbol"]})
+            is_owned = isOwned(session["user_id"], name_iex_info["symbol"])
             print("is_owned!!!!!")
             test_righcols = resultProxy_2_dict(is_owned)
-            print(test_righcols["stock"])
-            is_owned_name = test_righcols["stock"]
+            # print(test_righcols) these only work if not empty
+            # print(test_righcols["stock"])
                 # if owned there will be a result
-            if len(is_owned_name) > 1: # this is wrong!!!!
+            if test_righcols: #len(is_owned) > 1: # this is wrong!!!!
+                is_owned_name = test_righcols["stock"]
             # get new amount
                 new_amount = int(test_righcols["number"]) + int(amount)
             # get new value
@@ -148,8 +139,8 @@ def buy():
                 inserted = db.session.execute("INSERT INTO portfolio (id, stock, number, value) VALUES(:id, :name, :number, :value)",
                 {"id" : user_id , "number" : amount, "value" : value, "name" : name})
                 db.session.commit()
-                db.session.refresh(is_owned)
-                is_owned3 = db.session.execute("SELECT * FROM portfolio WHERE id= :id AND stock= :stock",{ "id" : session["user_id"], "stock" : name_iex_info["symbol"]})
+                db.session.execute("SELECT * FROM portfolio WHERE id= :id AND stock= :stock",{ "id" : session["user_id"], "stock" : name_iex_info["symbol"]})
+                is_owned3 = isOwned(session["user_id"], name_iex_info["symbol"])
                 test_righcols = resultProxy_2_dict(is_owned3)
                 print(is_owned3)
                 print(test_righcols)
@@ -159,7 +150,7 @@ def buy():
             db.session.commit()
             db.session.execute("SELECT * FROM log WHERE id=:id ORDER BY date DESC", { "id" : session["user_id"]})
             # displaying everything to screen
-            portfolio = db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : session["user_id"]})
+            portfolio = getPortfolio(session["user_id"])
             portfolio_db = SQLalchemy_query_pandas(portfolio)
             #portfolioTEST = pd.read_sql("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : session["user_id"]}, con=db.engine)
             full_port_db = index_portfolio(portfolio_db)
@@ -181,14 +172,7 @@ def sell():
     """Sell shares of stock"""
     #user selects buy and amount to but
     if request.method == "POST":
-
-        if not request.form.get("symbol") or not request.form.get("amount"):
-            return apology("Please provide all details")
-        if request.form.get("amount").isnumeric() == False:
-            return apology("Please provide a numerical value for amount")
-        amount = int(request.form.get("amount"))
-        if amount < 1:
-            return apology("Please provide an amount greater than 1")
+        check_request_okay(request)
 
         name = request.form.get("symbol").upper()
         name_iex_info = lookup(name)
@@ -196,9 +180,9 @@ def sell():
         if not name_iex_info:
             return apology("Symbol not found")
         # check if its owned
-        isOwned = db.session.execute("SELECT * FROM portfolio WHERE id= :id AND stock= :stock",{ "id" : session["user_id"], "stock" : name_iex_info["symbol"]})
+        is_Owned = isOwned(session["user_id"], name_iex_info["symbol"])
         print("is_owned!!!!!")
-        test_righcols = resultProxy_2_dict(isOwned)
+        test_righcols = resultProxy_2_dict(is_Owned)
         print(test_righcols)
         print(test_righcols["stock"])
         is_owned_name = test_righcols["stock"]
@@ -207,6 +191,7 @@ def sell():
             apology("Do not owned")
 
         # check if there is suffient shares for the sale
+        amount = int(request.form.get("amount"))
         sufficient_stock = int(test_righcols["number"]) - int(amount)
         if sufficient_stock < 0:
             apology("Insufficient stocks for this transactions")
@@ -219,7 +204,8 @@ def sell():
             now = datetime.now()
             dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
             if new_amount == 0:
-                db.session.execute("DELETE FROM portfolio WHERE id =:id AND stock=:name", { "id" : session["user_id"], "name" : name_iex_info["symbol"]})
+                #db.session.execute("DELETE FROM portfolio WHERE id =:id AND stock=:name", { "id" : session["user_id"], "name" : name_iex_info["symbol"]})
+                update_cash(session["user_id"], cash)
                 db.session.commit()
                 db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : session["user_id"]})
             # calculate value of this
@@ -239,7 +225,7 @@ def sell():
             db.session.execute("INSERT INTO log (id, action, stock, amount, price_dealt, date) VALUES (:id, :action, :name, :amount, :price_dealt, :date)"
             , { "id" : session["user_id"], "action" : "sell", "amount" : amount, "name" : name_iex_info["symbol"], "price_dealt" : name_iex_info["price"], "date" : dt_string})
             db.session.commit()
-            portfolio = db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : session["user_id"]})
+            portfolio = getPortfolio(session["user_id"])
             portfolio_db = SQLalchemy_query_pandas(portfolio)
             portfolio_total = 0.0
             full_port_db = index_portfolio(portfolio_db)
@@ -255,17 +241,10 @@ def sell():
 @login_required
 def history():
     """Show history of transactions"""
-    log = db.session.execute("SELECT * FROM log WHERE id=:id ORDER BY date DESC", { "id" : session["user_id"]})
+    log = getPortfolio(session["user_id"])
     print(log)
     return render_template("history.html", logs=log)
 
-# @app.route("/history")
-# @login_required
-# def history():
-#     """Show history of transactions"""
-#     log = db.session.execute("SELECT * FROM log WHERE id=:id ORDER BY date DESC", { "id" : session["user_id"]})
-#     print(log)
-#     return render_template("history.html", logs=log)
 
 @app.route("/quote", methods=["GET", "POST"])
 @login_required
@@ -314,14 +293,7 @@ def login():
         rows = db.session.execute("SELECT * FROM users WHERE username = :username",
                           {"username" : request.form.get("username")})
         print(rows)
-        ### CLEAN THIS UP!
-        d, a = {}, []
-        for rowproxy in rows:
-            # rowproxy.items() returns an array like [(key0, value0), (key1, value1)]
-            for column, value in rowproxy.items():
-                # build up the dictionary
-                d = {**d, **{column: value}}
-            a.append(d)
+        d = resultProxy_2_dict(rows)
 
         print(d["username"])
         print(len(d))

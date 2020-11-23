@@ -91,6 +91,46 @@ def get_cash(name):
     cash = cash_query['cash']
     return cash
 
+def index_add_currentdets(df):
+    stocks = df["stock"].tolist()
+    number = df["number"].tolist()
+    value = df["value"].tolist()
+
+    current_price = []
+    profit = []
+    current_total = []
+    price_paid = []
+    total = [] # I think this is
+    for i in range(len(stocks)):
+        stock = lookup(str(stocks[i]))
+        pp = round((value[i] / number[i]),2)
+        price_paid.append(pp)
+        current_price.append(stock["price"])
+        cur_total = stock["price"] * number[i]
+        current_total.append(cur_total)
+        total_paid = value[i] * number[i]
+        total.append(total_paid)
+        profit.append((stock["price"] - pp))
+    df["price_paid"] = price_paid
+    df["cur_price"] = current_price
+    df["cur_total"] = current_total
+    df["total"] = total
+    df["profit"] = profit
+    df = df.groupby(['stock']).mean()
+    df.reset_index(inplace=True)
+    return df
+
+def index_comp_name(df):
+    stocks = df["stock"].tolist()
+    company = []
+
+    for i in range(len(stocks)):
+        stock = lookup(str(stocks[i]))
+        company.append(stock["name"])
+
+    df["company"] = company
+    return df
+
 def index_portfolio(df):
     """
     Input
@@ -98,44 +138,18 @@ def index_portfolio(df):
     Output
         A db with X columns (adds company, cur_price, cur_total, total, profit)
     """
-    ticker_name = df.loc[0, 'stock']
+    # for i in len(df
+    # #ticker_name = df.lon[i, "stock"]
+    ticker_name = df.loc[0, 'stock'] # This is the problem not always 0 need to make a list 
+    # of atock names
     print("Ticker name:" + ticker_name)
     print("Type " + str(type(ticker_name)))
     print("Len " + ticker_name + ":" + str(len(ticker_name)))
     print(df["stock"]) # write a test to check that the ticker_name is a single cell
-    stock = lookup("NFLX")
-    print("STOCK name:")
-    print(stock)
-    df["company"] = stock["name"]
-    df["cur_price"] = stock["price"]
+    df = index_add_currentdets(df)
     print(df)
-    print(df.shape)
-    print(df.dtypes)
-    df["cur_total"] = stock["price"] * df["number"]
-    df["total"] = df["value"]
-    df["profit"] = df["cur_total"] - df["total"]
+    df = index_comp_name(df)
     return df
-
-
-## DELETE!!!
-def OLD_index_portfolio(portfolio):
-    for i in range(len(portfolio)):
-        ## NEED TO CHANGE THIS!!!
-        # test that it looks up a stock
-        # test that the output is correct
-        # test that it fails with empty
-        # test that it fails without a name
-        # stock = lookup(portfolio[i]["stock"]), KeyError: 0
-        print("Stock to find" + portfolio["stock"])
-        stock = lookup(portfolio["stock"])
-        print("stock lookup")
-        print(stock)
-        portfolio["company"] = stock["name"]
-        portfolio["cur_price"] = "%.2f"%(stock["price"])
-        portfolio["cur_total"] = "%.2f"%(float(stock["price"]) * float(portfolio["number"]))
-        portfolio["total"] = float("%.2f"%(portfolio["value"]))
-        portfolio["profit"] = "%.2f"%(float(portfolio["cur_total"]) - float(portfolio["total"]))
-    return portfolio
 
 def hasNumbers(inputString):
     """
@@ -153,3 +167,23 @@ def hasSpecialCharecters(inputString):
     else:
         return False
 
+def getPortfolio(id):
+    portfolio = db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : id})
+    return portfolio
+
+def isOwned(id, stock):
+    isOwned = db.session.execute("SELECT * FROM portfolio WHERE id= :id AND stock= :stock",{ "id" : id, "stock" : stock})
+    return isOwned
+
+def update_cash(id, cash):
+    cash_updated = db.session.execute("UPDATE users SET cash=:cash WHERE id=:id", {"cash" : cash,  "id" : id})
+    return cash_updated
+
+def check_request_okay(request):
+    if not request.form.get("symbol") or not request.form.get("amount"):
+        return apology("Please provide all details")
+    if request.form.get("amount").isnumeric() == False:
+        return apology("Please provide a numerical value for amount")
+    amount = int(request.form.get("amount"))
+    if amount < 1:
+        return apology("Please provide an amount greater than 1")
