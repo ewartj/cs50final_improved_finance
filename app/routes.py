@@ -241,10 +241,17 @@ def sell():
 @login_required
 def history():
     """Show history of transactions"""
-    log = getPortfolio(session["user_id"])
-    print(log)
-    return render_template("history.html", logs=log)
+    return render_template("history.html")
 
+@app.route("/historyJSON")
+@login_required
+def historyJSON():
+    """Show history of transactions"""
+    log = db.session.execute("SELECT * FROM log WHERE id=:id ORDER BY date DESC", { "id" : session["user_id"]})
+    log_df = SQLalchemy_query_pandas(log)
+    log_json = log_df.to_json(orient='table',index=False)
+    print(log_df)
+    return log_json 
 
 @app.route("/quote", methods=["GET", "POST"])
 @login_required

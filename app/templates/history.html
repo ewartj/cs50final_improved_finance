@@ -5,7 +5,15 @@
 {% endblock %}
 
 {% block main %}
-<table class="table table-hover">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/jquery.dataTables.min.css"/>
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
+      </style>
+</head>
+<body>
+    <table id="log" class="display" style="width:95%">
             <tr>
                 <th>Symbol</th>
                 <th>Action</th>
@@ -13,14 +21,38 @@
                 <th>Price Dealt ($)</th>
                 <th>Date</th>
             </tr>
-            {% for log in logs %}
-            <tr>
-                <td>{{ log.stock }}</td>
-                <td>{{ log.action }}</td>
-                <td>{{ log.amount }}</td>
-                <td>{{ log.price_dealt }}</td>
-                <td>{{ log.date }}</td>
-            </tr>
-            {% endfor %}
         </table>
+        <script>
+            function setupData() {
+                $(document).ready(function () {
+                    $('#log').DataTable({
+                        "paging":   false,
+                        "searching": false,
+                        "ajax": {
+                            "url": "/historyJSON",
+                            "dataType": "json",
+                            "dataSrc": "data",
+                            "contentType":"application/json"
+                        },
+                        "columns": [
+                            {"data": "stock",
+                            "title": "Symbol"},
+                            {"data": "action",
+                            "title": "Action"},
+                            {"data": "amount",
+                            "title": "Amount"},
+                            {"data": "price_dealt",
+                            "title": "Price Dealt ($)"},
+                            {"data": "date",
+                            "title": "Date"},
+                        ],
+                        "columnDefs": [
+                    {"className": "dt-left", "targets": "_all"}
+                    ],
+                    });
+                });
+            }
+            $( window ).on( "load", setupData );
+    </script>                  
+</body>
 {% endblock %}
