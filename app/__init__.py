@@ -1,44 +1,41 @@
-from flask import Flask
-from config import Config
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_marshmallow import Marshmallow
-
-
-app = Flask(__name__)
-app.config.from_object(Config)
-db = SQLAlchemy(app)
-ma = Marshmallow()
-migrate = Migrate(app, db)
-
-from app import routes, models
-# from flask import Flask, current_app
-# from flask_sqlalchemy import SQLAlchemy
+# from flask import Flask
 # from config import Config
+# from flask_sqlalchemy import SQLAlchemy
+# from flask_migrate import Migrate
 # from flask_marshmallow import Marshmallow
 
-# db = SQLAlchemy()
+
+# app = Flask(__name__)
+# app.config.from_object(Config)
+# db = SQLAlchemy(app)
 # ma = Marshmallow()
+# migrate = Migrate(app, db)
 
-# def create_app(config_class=Config):
-#     app = Flask(__name__)
-#     app.config.from_object(config_class)
-#     db.init_app(app)
-#     ma.init_app(app)
+# from app import routes, models
+from flask import Flask, current_app
+from flask_sqlalchemy import SQLAlchemy
+from config import Config
+from flask_marshmallow import Marshmallow
 
-#     from app.access import bp as access_bp
-#     app.register_blueprint(access_bp)
+db = SQLAlchemy()
+ma = Marshmallow()
 
-#     from app.buy import bp as buy_bp
-#     app.register_blueprint(buy_bp)
+def create_app(config_class=Config):
+    app = Flask(__name__)
+    app.config.from_object(config_class)
+    db.init_app(app)
+    ma.init_app(app)
 
-#     from app.overview import bp as overview_bp
-#     app.register_blueprint(overview_bp)
+    from app.access import bp as access
+    app.register_blueprint(access)
 
-#     from app.sell import bp as sell_bp
-#     app.register_blueprint(sell_bp) 
+    from app.manage import bp as manage
+    app.register_blueprint(manage)
 
-#     from app.errors import bp as errors_bp
-#     app.register_blueprint(errors_bp)
+    from app.overview import bp as overview
+    app.register_blueprint(overview)
 
-#     return app
+    # from app.error import bp as error
+    # app.register_blueprint(error)
+
+    return app

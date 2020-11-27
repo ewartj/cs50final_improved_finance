@@ -6,6 +6,7 @@ from string import ascii_letters, digits
 from app import db
 import pandas as pd
 
+from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from flask import redirect, render_template, request, session
 from functools import wraps
 
@@ -187,3 +188,14 @@ def check_request_okay(request):
     amount = int(request.form.get("amount"))
     if amount < 1:
         return apology("Please provide an amount greater than 1")
+
+def errorhandler(e):
+    """Handle error"""
+    if not isinstance(e, HTTPException):
+        e = InternalServerError()
+    return apology(e.name, e.code)
+
+
+# # Listen for errors will need to make this a function?
+# for code in default_exceptions:
+#     app.errorhandler(code)(errorhandler)        
