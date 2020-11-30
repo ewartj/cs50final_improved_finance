@@ -12,6 +12,7 @@ from functools import wraps
 
 # configure CS50 Library to use SQLite database
 
+# used by all blueprints
 def apology(message, code=400):
     """Render message as an apology to user."""
     def escape(s):
@@ -26,7 +27,7 @@ def apology(message, code=400):
         return s
     return render_template("apology.html", top=code, bottom=escape(message)), code
 
-
+# used by all blueprints
 def login_required(f):
     """
     Decorate routes to require login.
@@ -63,19 +64,25 @@ def lookup(symbol):
     except (KeyError, TypeError, ValueError):
         return None
 
-
+#Delete this?
 def usd(value):
     """Format value as USD."""
     return f"${value:,.2f}"
 
+#used by overview and manage
 def SQLalchemy_query_pandas(query):
     """
     Takes a sqlalchemy resultProxy and converts it into a dataframe
     """
+    print("Query:")
+    print(query)
     df = pd.DataFrame(query.fetchall())
+    print(df)
     df.columns = query.keys()
+    print(df)
     return df
 
+#used by access and manage
 def resultProxy_2_dict(proxy):
     d, a = {}, []
     for rowproxy in proxy:
@@ -132,6 +139,7 @@ def index_comp_name(df):
     df["company"] = company
     return df
 
+#this and other index_ functions are used by manage and overview bps
 def index_portfolio(df):
     """
     Input
@@ -152,50 +160,23 @@ def index_portfolio(df):
     df = index_comp_name(df)
     return df
 
-def hasNumbers(inputString):
-    """
-    From:
-    https://stackoverflow.com/questions/31083503/how-do-i-check-if-a-string-contains-any-numbers
-    """
-    if any(str.isdigit(c) for c in inputString) == True:
-        return True
-    else:
-        return False
-
-def hasSpecialCharecters(inputString):
-    if set(inputString).difference(ascii_letters + digits):
-        return True
-    else:
-        return False
-
+#used by manage and overview bps
 def getPortfolio(id):
     portfolio = db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : id})
     return portfolio
 
+#used by manage and overview bps
 def isOwned(id, stock):
     isOwned = db.session.execute("SELECT * FROM portfolio WHERE id= :id AND stock= :stock",{ "id" : id, "stock" : stock})
     return isOwned
 
+#used by manage and overview bps
 def update_cash(id, cash):
     cash_updated = db.session.execute("UPDATE users SET cash=:cash WHERE id=:id", {"cash" : cash,  "id" : id})
     return cash_updated
-
-def check_request_okay(request):
-    if not request.form.get("symbol") or not request.form.get("amount"):
-        return apology("Please provide all details")
-    if request.form.get("amount").isnumeric() == False:
-        return apology("Please provide a numerical value for amount")
-    amount = int(request.form.get("amount"))
-    if amount < 1:
-        return apology("Please provide an amount greater than 1")
 
 def errorhandler(e):
     """Handle error"""
     if not isinstance(e, HTTPException):
         e = InternalServerError()
-    return apology(e.name, e.code)
-
-
-# # Listen for errors will need to make this a function?
-# for code in default_exceptions:
-#     app.errorhandler(code)(errorhandler)        
+    return apology(e.name, e.code)       

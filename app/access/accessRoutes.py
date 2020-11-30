@@ -9,6 +9,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from passlib.apps import custom_app_context as pwd_context
 
 from app.helpers import *
+from app.access.accessFunctions import *
 from app.access import bp
 #from app.models import log, portfolio, users
 
@@ -106,3 +107,6 @@ def logout():
 
     # Redirect user to login form
     return redirect("/login")
+
+for code in default_exceptions:
+    bp.errorhandler(code)(errorhandler)

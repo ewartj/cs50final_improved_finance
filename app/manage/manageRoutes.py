@@ -14,6 +14,7 @@ import pandas as pd
 from passlib.apps import custom_app_context as pwd_context
 
 from app.helpers import *
+from app.manage.manageFunctions import *
 
 #from app.models import log, portfolio, users
 from app.manage import bp
@@ -175,7 +176,7 @@ def sell():
             now = datetime.now()
             dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
             if new_amount == 0:
-                #db.session.execute("DELETE FROM portfolio WHERE id =:id AND stock=:name", { "id" : session["user_id"], "name" : name_iex_info["symbol"]})
+                db.session.execute("DELETE FROM portfolio WHERE id =:id AND stock=:name", { "id" : session["user_id"], "name" : name_iex_info["symbol"]})
                 update_cash(session["user_id"], cash)
                 db.session.commit()
                 db.session.execute("SELECT stock, number, value FROM portfolio WHERE id= :id", { "id" : session["user_id"]})
@@ -194,7 +195,7 @@ def sell():
              # get new values
             # add to log do I need a timestamp?
             db.session.execute("INSERT INTO log (id, action, stock, amount, price_dealt, date) VALUES (:id, :action, :name, :amount, :price_dealt, :date)"
-            , { "id" : session["user_id"], "action" : "sell", "amount" : amount, "name" : name_iex_info["symbol"], "price_dealt" : name_iex_info["price"], "date" : dt_string})
+            , { "id" : session["user_id"], "action" : "Sell", "amount" : amount, "name" : name_iex_info["symbol"], "price_dealt" : name_iex_info["price"], "date" : dt_string})
             db.session.commit()
             portfolio = getPortfolio(session["user_id"])
             portfolio_db = SQLalchemy_query_pandas(portfolio)
