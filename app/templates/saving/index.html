@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block main %}
+<head>
+  <title>Savings accounts</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/jquery.dataTables.min.css"/>
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+<h1>Savings accounts</h1>
+<table id="example" class="display" style="width:95%">
+        <thead>
+            <tr>
+                <th>PROVIDER</th>
+                <th>RATE</th>
+                <th>UNLIMITED_WITHDRAWALS</th>
+                <th>MIN</th>
+                <th>MAX</th>
+                <th>APPLY</th>
+            </tr>
+        </thead>
+    </table>
+<br>
+<div class="container" style="display: inline-block;"></div>
+    <div class="charts text-center" IMG STYLE="float: right;">
+        <div class="row"><div id="scatter"></div></div><hr>
+        <!-- Placeholder for the tooltip -->
+        <div id="vis-tooltip" class="vg-tooltip"></div>
+        </div>
+    </div>
+</div>
+<script>
+function setupData() {
+    $(document).ready(function () {
+        $('#example').DataTable({
+            "ajax": {
+                "url": "/saving_JSON", 
+                "dataType": "json",
+                "dataSrc": "data",
+                "contentType":"application/json"
+            },
+            "columns": [
+                {"data": "PROVIDER"},
+                {"data": "RATE"},
+                {"data": "UNLIMITED_WITHDRAWALS"},
+                {"data": "MIN"},
+                {"data": "MAX"},
+                {"data": "APPLY"},
+            ],
+        });
+    });
+}
+$( window ).on( "load", setupData );
+</script>
+</script>
+</body>
+<footer>
+    <p style="text-align:left;">
+    Value correct at 25/07/2020.
+    </p>
+{% endblock %}

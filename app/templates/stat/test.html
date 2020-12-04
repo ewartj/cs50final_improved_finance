@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block main %}
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/jquery.dataTables.min.css"/>
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega@4"></script> 
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@3.0.0-rc12"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@3"></script>
+  <script src="https://vega.github.io/datalib/datalib.min.js"></script>
+  <link rel="stlesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/vega-tooltip@0.16.0/vega-tooltip.scss">
+  <script src="https://cdn.jsdelivr.net/npm/vega-tooltip@0.16.0/build/vega-tooltip.min.js"></script>
+</head>
+<body>
+    <h1>Time taken for each run</h1>
+<div class="container" style="display: inline-block;"></div>
+    <div class="charts text-center" IMG STYLE="float: right;">
+        <div class="row"><div id="scatter"></div></div><hr>
+        <!-- Placeholder for the tooltip -->
+        <div id="vis-tooltip" class="vg-tooltip"></div>
+        </div>
+    </div>
+</div>
+<br>
+<p style="text-align:left;">
+Data shown to the nearest minute and has been calculated by subtracting analysis date from imported date.
+</p>
+<!-- Render Charts --> 
+<script type="text/javascript">
+      function parse(url, div) {
+        var opt = {
+          mode: "vega-lite",
+          renderer: "svg",
+          actions: {export: true, source: false, editor: false}
+        };
+
+        vegaEmbed("#"+div, url, opt, function(error, result) {
+          // result.view is the Vega View, url is the original Vega-Lite specification
+          vegaTooltip.vegaLite(result.view, url);
+        });
+      }
+
+
+      parse("/econ_chart", "scatter");
+</script>
+</body>
+{% endblock %}

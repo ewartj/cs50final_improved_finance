@@ -53,7 +53,7 @@ def login():
         session["user_id"] = d["id"]
 
         # Redirect user to home page
-        return redirect(url_for("overview.index"))
+        return redirect(url_for("overview.ind"))
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
@@ -92,7 +92,7 @@ def register():
         session["user_id"] = result
 
         # redirect user to home page
-        return redirect(url_for("overview.index"))
+        return redirect(url_for("overview.ind"))
 
     # else if user reached route via GET (as by clicking a link or via redirect)
     else:

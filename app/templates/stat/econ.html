@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+
+{% block main %}
+<head>
+  <title>Savings accounts</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/jquery.dataTables.min.css"/>
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+<h1>Global Economy Indicators</h1>
+<h2>Inflation</h2>
+<h3>Latest UK inflation is {{inf}}%</h3>
+<div id="chart" class="container" style="display: inline-block;"></div>
+    <div class="charts text-center" IMG STYLE="float: right;">
+        <div class="row"><div id="scatter"></div></div><hr>
+        <!-- Placeholder for the tooltip -->
+        <div id="vis-tooltip" class="vg-tooltip"></div>
+        </div>
+    </div>
+</div>
+<table id="example" class="display" style="width:95%">
+        <thead>
+            <tr>
+                <th>Country</th>
+                <th>Date</th>
+                <th>Inflation Consumer Prices</th>
+            </tr>
+        </thead>
+    </table>
+<br>
+<script>
+function setupData() {
+    $(document).ready(function () {
+        $('#example').DataTable({
+            "ajax": {
+                "url": "/inf_table",
+                "dataType": "json",
+                "dataSrc": "data",
+                "contentType":"application/json"
+            },
+            "columns": [
+                {"data": "country"},
+                {"data": "date"},
+                {"data": "InflationConsumerPrices"},
+            ],
+        });
+    });
+}
+$( window ).on( "load", setupData );
+</script>
+<br>
+<h2>Inflation</h2>
+<h3>Latest UK GDP growth is {{gdp}}%</h3>
+<table id="example1" class="display" style="width:95%">
+        <thead>
+            <tr>
+                <th>Country</th>
+                <th>Date</th>
+                <th>GDP growth</th>
+            </tr>
+        </thead>
+    </table>
+<br>
+<div id="chart2" class="container" style="display: inline-block;"></div>
+    <div class="charts text-center" IMG STYLE="float: right;">
+        <div class="row"><div id="scatter"></div></div><hr>
+        <!-- Placeholder for the tooltip -->
+        <div id="vis-tooltip" class="vg-tooltip"></div>
+        </div>
+    </div>
+</div>
+<script>
+function setupData() {
+    $(document).ready(function () {
+        $('#example1').DataTable({
+            "ajax": {
+                "url": "/gdp_table",
+                "dataType": "json",
+                "dataSrc": "data",
+                "contentType":"application/json"
+            },
+            "columns": [
+                {"data": "country"},
+                {"data": "date"},
+                {"data": "GDP per capita growth (annual %)"},
+            ],
+        });
+    });
+}
+$( window ).on( "load", setupData );
+</script>
+<br>
+<h3>Select indicator to plot graph of:</h3>
+<form action="" method="post" novalidate>
+{{ form.hidden_tag() }}
+    <p>
+        {{ form.target_indicator.label }}<br>
+        {{ form.target_indicator }}
+    <p> {{ form.submit() }}</p>
+    </p>
+</form>
+</body>
+<footer>
+    <p style="text-align:left;">
+    Value correct at 25/07/2020.
+    </p>
+{% endblock %}

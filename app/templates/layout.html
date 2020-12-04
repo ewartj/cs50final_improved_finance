@@ -21,15 +21,18 @@
     <body>
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                     <div class="navbar-header">
-                        <a class="navbar-brand" href="{{ url_for('overview.index') }}">Finance</span></a>
+                        <a class="navbar-brand" href="{{ url_for('saving.index') }}" style="color: #00FF00;">Finance</span></a>
                     </div>
                     <div class="collapse navbar-collapse" id="navbar">
+                        <a href="{{ url_for('stat.econ') }}" style="color: #00FF00;">Economic data</a> || 
+                        <a href="{{ url_for('saving.graph') }}" style="color: #00FF00;">Savings graph</a> || 
                         {% if session.user_id %}
                             <ul class="nav navbar-nav">
                                 <li><a href="{{ url_for('manage.quote') }}">Quote</a></li> || 
                                 <li><a href="{{ url_for('manage.buy') }}"> Buy</a></li> || 
                                 <li><a href="{{ url_for('manage.sell') }}"> Sell</a></li> || 
                                 <li><a href="{{ url_for('overview.history') }}"> History</a></li> || 
+                                <li><a href="{{ url_for('overview.ind') }}"> Portfolio</a></li> || 
                             </ul>
                             <ul class="nav navbar-nav navbar-right">
                                 <li><a href="{{ url_for('access.logout') }}">Log Out</a></li>

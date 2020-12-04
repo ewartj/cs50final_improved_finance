@@ -35,7 +35,16 @@ def create_app(config_class=Config):
     from app.overview import bp as overview
     app.register_blueprint(overview)
 
-    # from app.error import bp as error
-    # app.register_blueprint(error)
+    from app.error import bp as error
+    app.register_blueprint(error)
+
+    from app.saving import bp as savings_bp
+    app.register_blueprint(savings_bp) 
+
+    from app.stat import bp as stat_bp
+    app.register_blueprint(stat_bp)
+
+    from app.errors import bp as errors_bp
+    app.register_blueprint(errors_bp)
 
     return app

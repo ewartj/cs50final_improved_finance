@@ -1,0 +1,12 @@
+H1 { text-align: left;
+}
+
+body {
+border: 1px solid white;
+margin: auto;  
+padding: 2px;
+text-align: left;
+background: navy !important; }
+.red {
+background-color: red !important;
+}

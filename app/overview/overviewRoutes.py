@@ -19,9 +19,9 @@ from app.helpers import *
 from app.overview import bp
 
 @bp.route("/")
-@bp.route("/index")
+@bp.route("/ind")
 @login_required
-def index():
+def ind():
     """Show portfolio of stocks"""
     cash = float(get_cash(session["user_id"]))
     print(cash)
@@ -41,7 +41,7 @@ def index():
     print(full_port_db)
     # Get total value
     portfolio_total = full_port_db['cur_total'].sum() + cash
-    return render_template("index.html", cash=usd(cash), grand_total=usd(portfolio_total))
+    return render_template("ind.html", cash=usd(cash), grand_total=usd(portfolio_total))
 
 @login_required
 @bp.route("/indexJSON")

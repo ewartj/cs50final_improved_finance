@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block main %}
+<head>
+  <title>Global Economy Indicators</title>
+</head>
+<body>
+<h1>Global Economy Indicators</h1>
+<img src="data:image/png;base64, {{ plot_url }}">
+</body>
+<footer>
+    <p style="text-align:left;">
+    Value correct at 25/07/2020.
+    </p>
+{% endblock %}

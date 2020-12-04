@@ -133,7 +133,7 @@ def buy():
             full_port_db = full_port_db.to_json(orient='table',index=False)
             print("JSOn format")
             # Get total value
-            return render_template("index.html", portfolio=portfolio, cash=usd(cash), grand_total=usd(portfolio_total))
+            return render_template("ind.html", portfolio=portfolio, cash=usd(cash), grand_total=usd(portfolio_total))
     else:
         print("ERROOOOR")
         return render_template("buy.html") #cash=usd(cash), grand_total=usd(portfolio_total)
@@ -204,7 +204,7 @@ def sell():
             print(full_port_db)
             # Get total value
             portfolio_total = full_port_db['total'].sum() + cash
-            return render_template("index.html", portfolio=portfolio, cash=usd(cash), grand_total=usd(portfolio_total))
+            return render_template("ind.html", portfolio=portfolio, cash=usd(cash), grand_total=usd(portfolio_total))
     return render_template("sell.html")
 
 # def errorhandler(e):
